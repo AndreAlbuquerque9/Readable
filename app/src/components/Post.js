@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import {
   callCarregarPostagem,
   callCarregarComentarios,
@@ -17,13 +17,13 @@ class Post extends Component {
     this.props.callCarregarComentarios(this.props.match.params.id);
   }
 
-  componentWillReceiveProps(nextProps) {
+  /*componentWillReceiveProps(nextProps) {
     let postagem = nextProps.postagem.postagem;
 
-    if (postagem.deleted === true) {
+    if (Object.keys(postagem).length === 0 && postagem.constructor === Object) {
       window.location = "/erro404";
     }
-  }
+  }*/
 
   handleExcluirPostagem = id => {
     let confirm = window.confirm("Deseja mesmo excluir este registro?");
@@ -43,61 +43,74 @@ class Post extends Component {
     this.props.callVotar(id, data, "posts", true);
   };
 
+  load = () => {
+    setTimeout(1000);
+  };
+
   render() {
     let postagem = this.props.postagem.postagem;
     let comentarios = this.props.comentarios.comentarios;
 
-    return postagem.id === undefined ? (
-      (window.location = "/erro404")
-    ) : (
-      <main>
-        <div className="voltar-btn-wrapper">
-          <button>
-            <Link to="/">Voltar</Link>
-          </button>
-        </div>
-        <section className="post-wrapper">
-          <div className="post-header">
+    if (postagem.id !== undefined) {
+      return (
+        <main>
+          <div className="voltar-btn-wrapper">
+            <button>
+              <Link to="/">Voltar</Link>
+            </button>
+          </div>
+          <section className="post-wrapper">
+            <div className="post-header">
+              <div>
+                <h3>{postagem.title}</h3>
+                <span className="small">
+                  Por {postagem.author} em{" "}
+                  {Moment.unix(postagem.timestamp / 1000).format("DD/MM/YYYY")}
+                </span>
+                <Link className="categoria-item" to="#">
+                  {postagem.category !== undefined &&
+                    capitalize(postagem.category)}
+                </Link>
+              </div>
+              <div className="votes-wrapper">
+                <span>{comentarios.length} comentarios | </span>
+                <span>{postagem.voteScore} votos</span>
+                <button
+                  style={{ marginRight: "5px" }}
+                  onClick={() => this.handleVotar(postagem.id, "upVote")}
+                >
+                  +1
+                </button>
+                <button
+                  onClick={() => this.handleVotar(postagem.id, "downVote")}
+                >
+                  -1
+                </button>
+              </div>
+            </div>
+            <hr />
+            <div className="post-body">{postagem.body}</div>
             <div>
-              <h3>{postagem.title}</h3>
-              <span className="small">
-                Por {postagem.author} em{" "}
-                {Moment.unix(postagem.timestamp / 1000).format("DD/MM/YYYY")}
-              </span>
-              <Link className="categoria-item" to="#">
-                {postagem.category !== undefined &&
-                  capitalize(postagem.category)}
-              </Link>
-            </div>
-            <div className="votes-wrapper">
-              <span>{comentarios.length} comentarios | </span>
-              <span>{postagem.voteScore} votos</span>
-              <button
-                style={{ marginRight: "5px" }}
-                onClick={() => this.handleVotar(postagem.id, "upVote")}
-              >
-                +1
+              <button style={{ marginRight: "5px" }}>
+                <Link to={`/postagens/${postagem.id}/editar`}>Editar</Link>
               </button>
-              <button onClick={() => this.handleVotar(postagem.id, "downVote")}>
-                -1
+              <button onClick={() => this.handleExcluirPostagem(postagem.id)}>
+                Excluir
               </button>
             </div>
-          </div>
-          <hr />
-          <div className="post-body">{postagem.body}</div>
-          <div>
-            <button style={{ marginRight: "5px" }}>
-              <Link to={`/postagens/${postagem.id}/editar`}>Editar</Link>
-            </button>
-            <button onClick={() => this.handleExcluirPostagem(postagem.id)}>
-              Excluir
-            </button>
-          </div>
-          <hr />
-        </section>
-        <Comentarios id={this.props.match.params.id} />
-      </main>
-    );
+            <hr />
+          </section>
+          <Comentarios id={this.props.match.params.id} />
+        </main>
+      );
+    } else {
+      return (
+        <div className="erro404-wrapper">
+          <p>Este conteúdo foi removido.</p>
+          <Link to="/">Retornar para a página inicial</Link>
+        </div>
+      );
+    }
   }
 }
 
