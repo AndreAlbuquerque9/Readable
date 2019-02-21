@@ -47,7 +47,9 @@ class Post extends Component {
     let postagem = this.props.postagem.postagem;
     let comentarios = this.props.comentarios.comentarios;
 
-    return (
+    return postagem.id === undefined ? (
+      (window.location = "/erro404")
+    ) : (
       <main>
         <div className="voltar-btn-wrapper">
           <button>
